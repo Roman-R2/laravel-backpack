@@ -1,0 +1,69 @@
+version: '3'
+services:
+  nginx:
+    container_name: nginx
+    build:
+      context: docker/development
+      dockerfile: nginx.docker
+    volumes:
+      - ./laravel:/app
+    depends_on:
+      - php-fpm
+    ports:
+      - "8080:80"
+
+  php-fpm:
+    container_name: php-fpm
+    build:
+      context: docker/development
+      dockerfile: php-fpm.docker
+    volumes:
+      - ./laravel:/app
+    depends_on:
+      - postgres
+      - redis
+  
+  php-cli:
+    container_name: php-cli
+    build:
+      context: docker/development
+      dockerfile: php-cli.docker
+    volumes:
+      - ./laravel:/app
+    depends_on:
+      - postgres
+    working_dir: /app
+  
+  postgres:
+    container_name: postgres
+    image: postgres:11.2-alpine
+    volumes:
+      - vol-postgres:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: App
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: App
+    ports:
+      - "54321:5432"
+
+  redis:
+    image: redis:3.0-alpine
+    volumes:
+      - vol-redis:/data
+    command:
+      - 'redis-server'
+      - '--requirepass secret'
+
+  node-cli:
+    container_name: node-cli
+    build:
+      context: docker/development
+      dockerfile: node.docker
+    volumes:
+      - ./laravel:/app
+    working_dir: /app
+
+volumes:
+  vol-postgres:
+  vol-redis:
+
